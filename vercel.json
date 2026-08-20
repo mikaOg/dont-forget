@@ -2,6 +2,26 @@
   "version": 2,
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/admin", "dest": "/admin.html" },
     { "src": "/(.*)", "dest": "/index.html" }
-  ]
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ],
+  "installCommand": "npm install --legacy-peer-deps --no-audit --no-fund",
+  "buildCommand": "echo 'No build needed'",
+  "outputDirectory": ".",
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 10,
+      "memory": 1024
+    }
+  }
 }
