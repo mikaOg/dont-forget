@@ -5,8 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "vercel dev",
-    "deploy": "vercel --prod",
-    "postinstall": "npm approve-scripts --allow-scripts-pending || true"
+    "deploy": "vercel --prod"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.6.0",
@@ -22,9 +21,5 @@
   },
   "engines": {
     "node": "18.x"
-  },
-  "overrides": {
-    "tar": "^6.2.1",
-    "debug": "^4.3.4"
   }
 }
