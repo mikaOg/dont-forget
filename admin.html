@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EthioTrend Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0e;
+            color: #f0f0f5;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4a8af4, #b070f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .subtitle { color: #a0a0b0; margin-bottom: 30px; }
+        .card {
+            background: #121216;
+            border: 1px solid #22222a;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 { font-size: 18px; margin-bottom: 15px; color: #f0f0f5; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: #0a0a0e;
+            border: 1px solid #22222a;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box .number { font-size: 28px; font-weight: 700; color: #4a8af4; }
+        .stat-box .label { font-size: 12px; color: #6a6a7a; margin-top: 5px; }
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #0a0a0e;
+            color: #a0a0b0;
+            font-weight: 600;
+            border-bottom: 2px solid #22222a;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #1a1a22;
+        }
+        .status-badge {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .status-badge.pending { background: rgba(240, 160, 48, 0.2); color: #f0a030; }
+        .status-badge.paid { background: rgba(48, 208, 128, 0.2); color: #30d080; }
+        .status-badge.failed { background: rgba(240, 96, 96, 0.2); color: #f06060; }
+        .btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 5px;
+        }
+        .btn-approve { background: #30d080; color: #121216; }
+        .btn-approve:hover { background: #20c070; }
+        .btn-reject { background: #f06060; color: #fff; }
+        .btn-reject:hover { background: #d05050; }
+        .btn-refresh { background: #4a8af4; color: #fff; padding: 8px 20px; }
+        .btn-refresh:hover { background: #3a7ae4; }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 10px 14px;
+            background: #0a0a0e;
+            border: 1px solid #22222a;
+            border-radius: 6px;
+            color: #f0f0f5;
+            font-size: 14px;
+            min-width: 200px;
+        }
+        .input-group input:focus { outline: none; border-color: #4a8af4; }
+        .loading { color: #a0a0b0; text-align: center; padding: 20px; }
+        .empty { color: #6a6a7a; text-align: center; padding: 20px; }
+        .screenshot-link { color: #4a8af4; text-decoration: none; }
+        .screenshot-link:hover { text-decoration: underline; }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            table { font-size: 12px; }
+            th, td { padding: 6px 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 EthioTrend Admin Panel</h1>
+        <p class="subtitle">Manage payments and verify CBE transfers</p>
+
+        <div class="card">
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-box"><div class="number" id="totalPending">0</div><div class="label">Pending</div></div>
+                <div class="stat-box"><div class="number" id="totalPaid">0</div><div class="label">Approved</div></div>
+                <div class="stat-box"><div class="number" id="totalFailed">0</div><div class="label">Rejected</div></div>
+                <div class="stat-box"><div class="number" id="totalAll">0</div><div class="label">Total</div></div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="adminKeyInput" placeholder="Enter Admin API Key" />
+                <button class="btn btn-refresh" onclick="loadPayments()">🔓 Load Payments</button>
+            </div>
+
+            <div class="input-group">
+                <button class="btn btn-refresh" onclick="loadPayments('pending')">⏳ Pending</button>
+                <button class="btn btn-refresh" onclick="loadPayments('paid')">✅ Paid</button>
+                <button class="btn btn-refresh" onclick="loadPayments('failed')">❌ Failed</button>
+                <button class="btn btn-refresh" onclick="loadPayments('all')">📋 All</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Payments</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Fingerprint</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Screenshot</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsBody">
+                        <tr><td colspan="8" class="empty">Enter admin key and click Load</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStatus = 'pending';
+
+        async function loadPayments(status = currentStatus) {
+            currentStatus = status;
+            const adminKey = document.getElementById('adminKeyInput').value.trim();
+            if (!adminKey) {
+                alert('Please enter your Admin API Key');
+                return;
+            }
+
+            const tbody = document.getElementById('paymentsBody');
+            tbody.innerHTML = '<tr><td colspan="8" class="loading">Loading...</td></tr>';
+
+            try {
+                const url = status === 'all' 
+                    ? `/api/cbe-list?adminKey=${adminKey}`
+                    : `/api/cbe-list?adminKey=${adminKey}&status=${status}`;
+                
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load');
+                }
+
+                updateStats(data.data);
+                renderPayments(data.data);
+
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="8" class="empty">❌ ${err.message}</td></tr>`;
+            }
+        }
+
+        function updateStats(payments) {
+            const pending = payments.filter(p => p.status === 'pending').length;
+            const paid = payments.filter(p => p.status === 'paid').length;
+            const failed = payments.filter(p => p.status === 'failed').length;
+            
+            document.getElementById('totalPending').textContent = pending;
+            document.getElementById('totalPaid').textContent = paid;
+            document.getElementById('totalFailed').textContent = failed;
+            document.getElementById('totalAll').textContent = payments.length;
+        }
+
+        function renderPayments(payments) {
+            const tbody = document.getElementById('paymentsBody');
+            
+            if (!payments || payments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="empty">No payments found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = payments.map(p => `
+                <tr>
+                    <td><code>${p.tx_ref || p.cbe_transfer_ref || '-'}</code></td>
+                    <td style="font-size:12px;">${p.fingerprint ? p.fingerprint.slice(0, 12) + '...' : '-'}</td>
+                    <td>${p.amount || 150} ETB</td>
+                    <td>${p.method || 'cbe'}</td>
+                    <td><span class="status-badge ${p.status}">${p.status || 'pending'}</span></td>
+                    <td>
+                        ${p.cbe_screenshot_url 
+                            ? `<a href="${p.cbe_screenshot_url}" target="_blank" class="screenshot-link">📷 View</a>` 
+                            : '-'}
+                    </td>
+                    <td style="font-size:12px;">${p.created_at ? new Date(p.created_at).toLocaleDateString() : '-'}</td>
+                    <td>
+                        ${p.status === 'pending' ? `
+                            <button class="btn btn-approve" onclick="verifyPayment('${p.tx_ref || p.cbe_transfer_ref}', 'approve')">✅</button>
+                            <button class="btn btn-reject" onclick="verifyPayment('${p.tx_ref || p.cbe_transfer_ref}', 'reject')">❌</button>
+                        ` : '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function verifyPayment(txRef, action) {
+            const adminKey = document.getElementById('adminKeyInput').value.trim();
+            if (!adminKey) {
+                alert('Please enter your Admin API Key');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to ${action} this payment?`)) return;
+
+            try {
+                const res = await fetch('/api/cbe-verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey, txRef, action })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadPayments(currentStatus);
+                } else {
+                    alert(`❌ ${data.error || 'Verification failed'}`);
+                }
+            } catch (err) {
+                alert(`❌ Error: ${err.message}`);
+            }
+        }
+
+        // Auto-load with Enter key
+        document.getElementById('adminKeyInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') loadPayments();
+        });
+
+        console.log('🔐 Admin panel loaded');
+        console.log('ℹ️ Enter your Admin API Key and click Load');
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+ethiotrend-pro/
+├── api/
+│   ├── youtube-stats.js      # Real YouTube data
+│   ├── tiktok-stats.js       # Real TikTok data
+│   ├── trends.js             # Trends from multiple sources
+│   ├── ai-tools.js           # AI caption & analysis
+│   ├── analyze.js            # Content analysis with Groq
+│   ├── cbe-upload.js         # CBE payment upload
+│   ├── cbe-verify.js         # CBE admin verification
+│   ├── cbe-list.js           # List payments
+│   ├── telebirr.js           # Telebirr payment init
+│   ├── telebirr-callback.js  # Telebirr webhook
+│   ├── telebirr-query.js     # Telebirr status check
+│   ├── creators.js           # Creator data
+│   └── test.js               # API test endpoint
+├── lib/
+│   └── db.js                 # Database connection
+├── index.html                # Main frontend
+├── admin.html                # Admin panel
+├── package.json              # Dependencies
+├── vercel.json               # Vercel config
+├── .env                      # Environment variables
+└── README.md                 # This file
