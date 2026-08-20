@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
       
       const prompt = `You are an Ethiopian social media expert. Generate 5 engaging captions for ${platform} about "${topic}".
       
-      Trending topics: ${trends.slice(0, 5).join(', ')}
+      Trending topics: ${(trends || []).slice(0, 5).join(', ')}
       
       Requirements:
       - Each caption under 80 characters
@@ -61,7 +61,7 @@ module.exports = async (req, res) => {
       
       const prompt = `Analyze this content for virality on ${platform} in Ethiopia:
       "${content}"
-      Trends: ${trends.slice(0, 5).join(', ')}
+      Trends: ${(trends || []).slice(0, 5).join(', ')}
       
       Return JSON: { score, level: "High/Moderate/Low", sentiment, insights: [], bestTime, hashtags: [] }`;
       
