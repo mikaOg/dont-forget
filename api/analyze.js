@@ -1,19 +1,7 @@
 const pool = require('../lib/db');
 const Groq = require('groq-sdk');
-const { Redis } = require('@upstash/redis');
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN,
-});
-
-async function checkRateLimit(ip) {
-  const key = `rate:${ip}`;
-  const current = await redis.incr(key);
-  if (current === 1) await redis.expire(key, 60);
-  return current > 15;
-}
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -53,9 +41,6 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress || 'unknown';
-    if (await checkRateLimit(ip)) return res.status(429).json({ error: 'Too many requests' });
-
     const { text, fingerprint, trends = [] } = req.body;
     if (!text?.trim()) return res.status(400).json({ error: 'Text required' });
 
@@ -83,7 +68,7 @@ Return ONLY valid JSON with this exact structure:
         },
         {
           role: 'user',
-          content: `Trends: ${trends.slice(0,5).join(', ')}\n\nContent: "${cleanText}"`
+          content: `Trends: ${(trends || []).slice(0,5).join(', ')}\n\nContent: "${cleanText}"`
         }
       ],
       model: 'llama-3.1-8b-instant',
@@ -104,6 +89,6 @@ Return ONLY valid JSON with this exact structure:
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'AI analysis failed' });
+    res.status(500).json({ error: 'AI analysis failed: ' + err.message });
   }
 };
